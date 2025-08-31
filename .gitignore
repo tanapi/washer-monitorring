@@ -10,11 +10,11 @@ dist/
 .idea/workspace.xml
 .idea/usage.statistics.xml
 .idea/shelf
-.d.ts
 
 # deps
 node_modules/
 .wrangler
+worker-configuration.d.ts
 
 # env
 .env
