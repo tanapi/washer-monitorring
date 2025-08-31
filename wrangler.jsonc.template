@@ -7,10 +7,6 @@
 	"name": "washer-monitorring",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-08-31",
-	"assets": {
-		"binding": "ASSETS",
-		"directory": "./public"
-	},
 	"observability": {
 		"enabled": true
 	},

@@ -7,13 +7,12 @@
 - `wrangler.jsonc`  
   Cloudflare Workers の設定ファイル。KV バインディングや環境変数などを記述します。
 
-## コード例
+## デプロイ
 
-`Hono` のインスタンス化時にバインディング型を指定します。
+`wrangler.jsonc` に正しい設定値を保存後、ローカルPCから下記コマンドを実行してください。
 
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: EnvWithKV }>();
+```shell
+npx wrangler deploy
 ```
 
 ## 主な機能
