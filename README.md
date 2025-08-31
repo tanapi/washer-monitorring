@@ -25,8 +25,7 @@ const app = new Hono<{ Bindings: EnvWithKV }>();
 
 ## 注意事項
 
-- 機密情報（API トークン等）は wrangler の secrets 機能や vars で管理してください。
-- KV や Webhook URL などは `wrangler.jsonc` で設定します。
+- SwitchBot APIの認証情報や、KV、Webhook URL などは `wrangler.jsonc` で設定します。
 
 ---
 
