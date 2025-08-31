@@ -1,6 +1,6 @@
 
 import { Hono } from 'hono';
-import {KVNamespace} from '@cloudflare/workers-types';
+import {btoa, crypto, ExportedHandlerScheduledHandler, fetch, KVNamespace, setTimeout, TextEncoder} from '@cloudflare/workers-types';
 
 // 環境変数の型定義
 type Env = {
