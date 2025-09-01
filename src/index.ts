@@ -1,4 +1,3 @@
-
 import { Hono } from 'hono';
 import {ExportedHandlerScheduledHandler, KVNamespace} from '@cloudflare/workers-types';
 
@@ -82,34 +81,77 @@ async function fetchFromSwitchBotPlugMiniStatus(
   };
 
   // APIリクエストを送信
-  const response = await fetch(SWITCH_BOT_API_URL, {
-    headers: apiHeader,
-  });
-  const res: SwitchBotResponse = await response.json();
+  try {
+    const response = await fetch(SWITCH_BOT_API_URL, {
+      headers: apiHeader,
+    });
 
-  return res;
+    if (!response.ok) {
+      // ステータスコードが200系でない場合はエラー内容をログ出力
+      const errorText = await response.text();
+      console.error(`SwitchBot API error: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(`SwitchBot API request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const res: SwitchBotResponse = await response.json();
+    console.log(res);
+
+    return res;
+  } catch (error) {
+    // fetch自体が失敗した場合やJSONパースエラー時
+    console.error("SwitchBot API fetch error:", error);
+    // 必要に応じてエラー内容を返すか、nullやダミー値を返す
+    return {
+      statusCode: -1,
+      body: {
+        deviceId: "",
+        deviceType: "",
+        hubDeviceId: "",
+        voltage: 0,
+        version: "",
+        weight: 0,
+        electricityOfDay: 0,
+        electricCurrent: 0,
+      },
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 // Discord通知を送信する関数
 async function sendDiscordNotification(webhookUrl: string, message: string) {
-  const response = await fetch(webhookUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ content: message }),
-  });
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: message }),
+    });
 
-  // レートリミットに達した場合、Retry-Afterヘッダーに基づいて再試行
-  if (response.status === 429) {
-    const retryAfter = response.headers.get("Retry-After");
-    setTimeout(() => {
-      sendDiscordNotification(webhookUrl, message);
-    }, (retryAfter ? parseInt(retryAfter) : 1) * 1000);
-    return "Rate limited";
+    // レートリミットに達した場合、Retry-Afterヘッダーに基づいて再試行
+    if (response.status === 429) {
+      const retryAfter = response.headers.get("Retry-After");
+      // Cloudflare Workers では setTimeout は使えないため、リトライはログ出力のみ
+      console.warn(
+        `Discord Webhook rate limited. Retry after ${retryAfter || 1}秒`
+      );
+      return "Rate limited";
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `Discord通知失敗: ${response.status} ${response.statusText} - ${errorText}`
+      );
+      return `Error: ${response.status} ${response.statusText}`;
+    }
+
+    return "OK";
+  } catch (error) {
+    console.error("Discord通知時に例外発生:", error);
+    return error instanceof Error ? error.message : String(error);
   }
-
-  return response.ok ? "OK" : response.statusText;
 } 
 
 // スケジュールイベントハンドラー
