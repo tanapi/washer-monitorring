@@ -130,8 +130,10 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
   
   // ステータスが正常に取得できた場合
   if (res.statusCode == 100) {
-    const wat = res.body.voltage * (res.body.electricCurrent / 1000); // ワット数を計算
-    const current_status = await env.tana_p_washer_status.get("status");  // KVから現在の洗濯機状態を取得
+    // ワット数を計算(電圧 * 電流(A←mA/1000
+    const wat = res.body.voltage * (res.body.electricCurrent / 1000); 
+    // 現在の洗濯機の状態をKVから取得
+    const current_status = await env.tana_p_washer_status.get("status");
     
     // 洗濯機の状態が変化した場合、KVを更新してDiscordに通知
     if (current_status === "0" && wat > 0) {
