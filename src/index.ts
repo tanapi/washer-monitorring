@@ -179,11 +179,15 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
     
     // 洗濯機の状態が変化した場合、KVを更新してDiscordに通知
     if (current_status === "0" && wat > 0) {
-      const res = await sendDiscordNotification(discordWebhookUrl, "ゴシゴシはじめますわ〜！");
-      await env.tana_p_washer_status.put("status", "1");
+      await Promise.all([
+        sendDiscordNotification(discordWebhookUrl, "ゴシゴシはじめますわ〜！"),
+        env.tana_p_washer_status.put("status", "1"),
+      ]);
     } else if (current_status === "1" && wat < 1) {
-      const res = await sendDiscordNotification(discordWebhookUrl, "早く干してくださいませ〜！");
-      await env.tana_p_washer_status.put("status", "0");
+      await Promise.all([
+        sendDiscordNotification(discordWebhookUrl, "早く干してくださいませ〜！"),
+        env.tana_p_washer_status.put("status", "0"),
+      ]);
     }
   };
 };
