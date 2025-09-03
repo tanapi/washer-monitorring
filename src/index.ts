@@ -7,6 +7,7 @@ type Env = {
   SWITCH_BOT_SECRET: string;
   SWITCH_BOT_DEVICE_ID: string;
   DISCORD_WEBHOOK_URL: string;
+  WASHER_START_THRESHOLD?: string;
 };
 type EnvWithKV = Env & { WASHER_MONITORRING: KVNamespace };
 
@@ -140,18 +141,24 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
     const watt = res.body.voltage * (res.body.electricCurrent / 1000);
     const currentStatus = await WASHER_MONITORRING.get("status") ?? "0";
 
-    // 状態変化時のみ通知・KV更新
-    if (currentStatus === "0" && watt > 0) {
-      await Promise.all([
-        sendDiscordNotification(DISCORD_WEBHOOK_URL, "ゴシゴシはじめますわ〜！"),
-        WASHER_MONITORRING.put("status", "1"),
-      ]);
-    } else if (currentStatus === "1" && watt < 1) {
-      await Promise.all([
-        sendDiscordNotification(DISCORD_WEBHOOK_URL, "早く干してくださいませ〜！"),
-        WASHER_MONITORRING.put("status", "0"),
-      ]);
-    }
+      // 起動判定の閾値を環境変数から取得（未設定や不正値はデフォルト5W）
+      const WASHER_START_THRESHOLD = (() => {
+        const val = parseInt(env.WASHER_START_THRESHOLD ?? "5", 10);
+        return isNaN(val) ? 5 : val;
+      })();
+
+      // 状態変化時のみ通知・KV更新
+      if (currentStatus === "0" && watt >= WASHER_START_THRESHOLD) {
+        await Promise.all([
+          sendDiscordNotification(DISCORD_WEBHOOK_URL, "ゴシゴシはじめますわ〜！"),
+          WASHER_MONITORRING.put("status", "1"),
+        ]);
+      } else if (currentStatus === "1" && watt < 1) {
+        await Promise.all([
+          sendDiscordNotification(DISCORD_WEBHOOK_URL, "早く干してくださいませ〜！"),
+          WASHER_MONITORRING.put("status", "0"),
+        ]);
+      }
   }
 };
 

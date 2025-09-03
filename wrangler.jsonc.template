@@ -26,10 +26,11 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
 	"vars": {
-		 "SWITCH_BOT_TOKEN": "your token here",
-		 "SWITCH_BOT_SECRET": "your secret here",
-		 "SWITCH_BOT_DEVICE_ID": "your device id here",
-		 "DISCORD_WEBHOOK_URL": "your discord webhook url here"	
+		"WASHER_START_THRESHOLD": "1",
+		"SWITCH_BOT_TOKEN": "your token here",
+		"SWITCH_BOT_SECRET": "your secret here",
+		"SWITCH_BOT_DEVICE_ID": "your device id here",
+		"DISCORD_WEBHOOK_URL": "your discord webhook url here"	
 	},
 	
 	/**
@@ -49,7 +50,7 @@
 
 	"kv_namespaces": [
 		{
-			"binding": "WASHER_MONITORRING",
+		  "binding": "WASHER_MONITORRING",
 			"id": "your_kv_id"
 		}
 	],
