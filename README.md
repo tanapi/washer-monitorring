@@ -25,6 +25,7 @@ npx wrangler deploy
 ## 注意事項
 
 - SwitchBot APIの認証情報や、KV、Webhook URL などは `wrangler.jsonc` で設定します。
+- CloudflareのKVに「WASHER_MONITORRING」を追加する必要があります。  
 
 ---
 

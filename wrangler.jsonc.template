@@ -49,7 +49,7 @@
 
 	"kv_namespaces": [
 		{
-			"binding": "your_kv_binding_name",
+			"binding": "WASHER_MONITORRING",
 			"id": "your_kv_id"
 		}
 	],
