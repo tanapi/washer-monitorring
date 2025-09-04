@@ -11,50 +11,46 @@
 		"enabled": true
 	},
 	/**
-	 * Smart Placement
-	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": { "mode": "smart" }
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	/**
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
 	"vars": {
 		"WASHER_START_THRESHOLD": "1",
-		"SWITCH_BOT_TOKEN": "your token here",
-		"SWITCH_BOT_SECRET": "your secret here",
 		"SWITCH_BOT_DEVICE_ID": "your device id here",
-		"DISCORD_WEBHOOK_URL": "your discord webhook url here"	
+		"DISCORD_WEBHOOK_URL": "your discode webhook url hear"	
 	},
 	
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
 	 */
+	"secrets_store_secrets": [
+		{
+			"binding": "SWITCH_BOT_TOKEN",
+			"store_id": "your secret store id here",
+			"secret_name": "SWITCH_BOT_TOKEN"
+		},
+		{
+			"binding": "SWITCH_BOT_SECRET",
+			"store_id": "your secret store id here",
+			"secret_name": "SWITCH_BOT_SECRET"
+		}
+	],
 	/**
-	 * Static Assets
-	 * https://developers.cloudflare.com/workers/static-assets/binding/
+	 * KV Namespaces
+	 * https://developers.cloudflare.com/workers/runtime-apis/kv/
 	 */
-	// "assets": { "directory": "./public/", "binding": "ASSETS" }
-	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-	 */
-	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
-
 	"kv_namespaces": [
 		{
 		  "binding": "WASHER_MONITORRING",
-			"id": "your_kv_id"
+		  "id": "8b5d32f82c964e20804e6b38f7ed1263"
 		}
 	],
+	/**
+	 * Triggers
+	 * https://developers.cloudflare.com/workers/platform/cron-triggers/
+	 */
 	"triggers": {
-		"crons": ["*/3 * * * *"]
+	  "crons": ["*/3 * * * *"]
 	}
 }

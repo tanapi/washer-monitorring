@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
-import { ExportedHandlerScheduledHandler, KVNamespace } from '@cloudflare/workers-types';
+import { ExportedHandlerScheduledHandler, KVNamespace, SecretsStoreSecret } from '@cloudflare/workers-types';
 
 // 型定義
 type Env = {
-  SWITCH_BOT_TOKEN: string;
-  SWITCH_BOT_SECRET: string;
+  SWITCH_BOT_TOKEN: SecretsStoreSecret;
+  SWITCH_BOT_SECRET: SecretsStoreSecret;
   SWITCH_BOT_DEVICE_ID: string;
   DISCORD_WEBHOOK_URL: string;
   WASHER_START_THRESHOLD?: string;
@@ -131,10 +131,17 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
   env,
   ctx
 ) => {
-  const { SWITCH_BOT_TOKEN, SWITCH_BOT_SECRET, SWITCH_BOT_DEVICE_ID, DISCORD_WEBHOOK_URL, WASHER_MONITORRING } = env;
+  const { SWITCH_BOT_DEVICE_ID, DISCORD_WEBHOOK_URL, WASHER_MONITORRING, SWITCH_BOT_TOKEN, SWITCH_BOT_SECRET } = env;
 
-  const { sign, t, nonce } = await generateSignature(SWITCH_BOT_TOKEN, SWITCH_BOT_SECRET);
-  const res = await fetchPlugMiniStatus(SWITCH_BOT_TOKEN, SWITCH_BOT_DEVICE_ID, sign, t, nonce);
+  // Secrets StoreからSwitch Bot APIの認証情報を取得（未設定時はエラー）
+  const switchBotToken = await SWITCH_BOT_TOKEN.get();
+  const switchBotSecret = await SWITCH_BOT_SECRET.get();
+  if (!switchBotToken || !switchBotSecret) {
+    console.error("SwitchBotのトークンまたはシークレットが未設定です");
+    return;
+  }
+  const { sign, t, nonce } = await generateSignature(switchBotToken, switchBotSecret);
+  const res = await fetchPlugMiniStatus(switchBotToken, SWITCH_BOT_DEVICE_ID, sign, t, nonce);
 
   if (res.statusCode === 100) {
     // 消費電力計算（W = V × A(mA / 1000)）
