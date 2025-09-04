@@ -17,7 +17,7 @@
 	"vars": {
 		"WASHER_START_THRESHOLD": "1",
 		"SWITCH_BOT_DEVICE_ID": "your device id here",
-		"DISCORD_WEBHOOK_URL": "your discode webhook url hear"	
+		"DISCORD_WEBHOOK_URL": "your discord webhook url here"
 	},
 	
 	/**
