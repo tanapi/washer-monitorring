@@ -38,3 +38,6 @@ lerna-debug.log*
 !.dev.vars.example
 .env*
 !.env.example
+
+cache/
+deps/

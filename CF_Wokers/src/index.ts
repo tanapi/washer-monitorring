@@ -5,7 +5,9 @@ import { ExportedHandlerScheduledHandler, KVNamespace, SecretsStoreSecret } from
 type Env = {
   SWITCH_BOT_TOKEN: SecretsStoreSecret;
   SWITCH_BOT_SECRET: SecretsStoreSecret;
+  WEBHOOK_PROXY_SECRET: SecretsStoreSecret;
   SWITCH_BOT_DEVICE_ID: string;
+  WEBHOOK_PROXY_URL: string;
   DISCORD_WEBHOOK_URL: string;
   WASHER_START_THRESHOLD?: string;
 };
@@ -98,17 +100,30 @@ async function fetchPlugMiniStatus(
 }
 
 // Discord通知
-async function sendDiscordNotification(webhookUrl: string, message: string) {
+async function sendDiscordNotification(webhookUrl: string, proxyUrl: string, proxySecret: string, message: string) {
   try {
-    const response = await fetch(webhookUrl, {
+    const response = await fetch(proxyUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: message }),
+      headers: { 
+        "Content-Type": "application/json",
+        "authorization": `Bearer ${proxySecret}`
+      },
+      body: JSON.stringify(
+        { 
+          content: message, 
+          webhook_url: webhookUrl 
+        }),
     });
 
     if (response.status === 429) {
       const retryAfter = response.headers.get("Retry-After");
       console.warn(`Discord Webhook rate limited. Retry after ${retryAfter || 1}秒`);
+
+      // レスポンスヘッダーからRetry-Afterを取得し、指定された秒数だけ待機して再試行
+      const waitTime = retryAfter ? parseInt(retryAfter, 10) * 1000 : 1000;
+      setTimeout(() => {
+        sendDiscordNotification(webhookUrl, proxyUrl, proxySecret, message);
+      }, waitTime);
       return "Rate limited";
     }
 
@@ -131,17 +146,28 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
   env,
   ctx
 ) => {
-  const { SWITCH_BOT_DEVICE_ID, DISCORD_WEBHOOK_URL, WASHER_MONITORRING, SWITCH_BOT_TOKEN, SWITCH_BOT_SECRET } = env;
+  const { 
+          SWITCH_BOT_DEVICE_ID, 
+          WEBHOOK_PROXY_URL, 
+          DISCORD_WEBHOOK_URL, 
+          WASHER_MONITORRING, 
+          SWITCH_BOT_TOKEN, 
+          SWITCH_BOT_SECRET,
+          WEBHOOK_PROXY_SECRET 
+        } = env;
 
   // Secrets StoreからSwitch Bot APIの認証情報を取得（未設定時はエラー）
   const switchBotToken = await SWITCH_BOT_TOKEN.get();
   const switchBotSecret = await SWITCH_BOT_SECRET.get();
-  if (!switchBotToken || !switchBotSecret) {
-    console.error("SwitchBotのトークンまたはシークレットが未設定です");
+  const webhookProxySecret = await WEBHOOK_PROXY_SECRET.get();
+  if (!switchBotToken || !switchBotSecret || !webhookProxySecret) {
+    console.error("シークレットが未設定です");
     return;
   }
   const { sign, t, nonce } = await generateSignature(switchBotToken, switchBotSecret);
   const res = await fetchPlugMiniStatus(switchBotToken, SWITCH_BOT_DEVICE_ID, sign, t, nonce);
+  // ToDo: 正常稼働できたらこのログは消す
+  console.log("SwitchBot API Response:", res);
 
   if (res.statusCode === 100) {
     // 消費電力計算（W = V × A(mA / 1000)）
@@ -157,12 +183,19 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
       // 状態変化時のみ通知・KV更新
       if (currentStatus === "0" && watt >= WASHER_START_THRESHOLD) {
         await Promise.all([
-          sendDiscordNotification(DISCORD_WEBHOOK_URL, "ゴシゴシはじめますわ〜！"),
+          sendDiscordNotification(
+            DISCORD_WEBHOOK_URL, 
+            WEBHOOK_PROXY_URL,
+            webhookProxySecret,
+             "ゴシゴシはじめますわ〜！"),
           WASHER_MONITORRING.put("status", "1"),
         ]);
-      } else if (currentStatus === "1" && watt < 1) {
+      } else if (currentStatus === "1" && watt < WASHER_START_THRESHOLD) {
         await Promise.all([
-          sendDiscordNotification(DISCORD_WEBHOOK_URL, "早く干してくださいませ〜！"),
+          sendDiscordNotification(DISCORD_WEBHOOK_URL,
+            WEBHOOK_PROXY_URL,
+            webhookProxySecret,
+             "早く干してくださいませ〜！"),
           WASHER_MONITORRING.put("status", "0"),
         ]);
       }

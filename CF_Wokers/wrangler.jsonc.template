@@ -17,6 +17,7 @@
 	"vars": {
 		"WASHER_START_THRESHOLD": "1",
 		"SWITCH_BOT_DEVICE_ID": "your device id here",
+		"WEBHOOK_PROXY_URL": "your wbhook proxy url here",
 		"DISCORD_WEBHOOK_URL": "your discord webhook url here"
 	},
 	
@@ -34,6 +35,11 @@
 			"binding": "SWITCH_BOT_SECRET",
 			"store_id": "your secret store id here",
 			"secret_name": "SWITCH_BOT_SECRET"
+		},
+		{
+			"binding": "WEBHOOK_PROXY_SECRET",
+			"store_id": "your secret store id here",
+			"secret_name": "WEBHOOK_PROXY_SECRET"
 		}
 	],
 	/**
