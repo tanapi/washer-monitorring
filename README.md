@@ -1,26 +1,26 @@
 # Washer Monitoring Worker
 
-このプロジェクトは、Cloudflare Workers 上で動作する洗濯機監視サービスです。SwitchBot Plug Mini から洗濯機の稼働状況を取得し、状態変化を Discord に通知します。
+このプロジェクトは、Cloudflare Workers 上で動作する洗濯機監視サービスです。  SwitchBot Plug Mini から洗濯機の稼働状況を取得し、状態変化を Discord に通知します。
 
 ## 構成
 
-- `CF_Workers` フォルダ
+- `CF_Workers` フォルダ  
   Cloudflare Workersのソース
   - `wrangler.jsonc`  
     Cloudflare Workers の設定ファイル。KV バインディングや環境変数などを記述します。
-- `lambda` フォルダ
+- `lambda` フォルダ  
   AWS lambda URLsのソース
 
 ## デプロイ
 
-- Cloudflare Workers
+- Cloudflare Workers  
   `wrangler.jsonc` に正しい設定値を保存後、`CF_Workers` フォルダ上で下記コマンドを実行してください。
 
 ```shell
 npx wrangler deploy
 ```
 
-- AWS lambda URLs
+- AWS lambda URLs  
   AWSマネジメントコンソールから手動で設置してください。
   (その際、lambdaの環境変数 **SECRET_TOKEN** に認証用のシークレット値を設定してください)
 
