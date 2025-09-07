@@ -166,8 +166,6 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
   }
   const { sign, t, nonce } = await generateSignature(switchBotToken, switchBotSecret);
   const res = await fetchPlugMiniStatus(switchBotToken, SWITCH_BOT_DEVICE_ID, sign, t, nonce);
-  // ToDo: 正常稼働できたらこのログは消す
-  console.log("SwitchBot API Response:", res);
 
   if (res.statusCode === 100) {
     // 消費電力計算（W = V × A(mA / 1000)）
