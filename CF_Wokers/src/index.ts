@@ -174,31 +174,36 @@ const scheduled: ExportedHandlerScheduledHandler<EnvWithKV> = async (
     const watt = res.body.voltage * (res.body.electricCurrent / 1000);
     const currentStatus = await WASHER_MONITORRING.get("status") ?? "0";
 
-      // 起動判定の閾値を環境変数から取得（未設定や不正値はデフォルト5W）
-      const WASHER_START_THRESHOLD = (() => {
-        const val = parseInt(env.WASHER_START_THRESHOLD ?? "5", 10);
-        return isNaN(val) ? 5 : val;
-      })();
+    // 起動判定の閾値を環境変数から取得（未設定や不正値はデフォルト5W）
+    const WASHER_START_THRESHOLD = (() => {
+      const val = parseInt(env.WASHER_START_THRESHOLD ?? "5", 10);
+      return isNaN(val) ? 5 : val;
+    })();
 
-      // 状態変化時のみ通知・KV更新
-      if (currentStatus === "0" && watt >= WASHER_START_THRESHOLD) {
-        await Promise.all([
-          sendDiscordNotification(
-            DISCORD_WEBHOOK_URL, 
-            WEBHOOK_PROXY_URL,
-            webhookProxySecret,
-             "ゴシゴシはじめますわ〜！"),
-          WASHER_MONITORRING.put("status", "1"),
-        ]);
-      } else if (currentStatus === "1" && watt < WASHER_START_THRESHOLD) {
-        await Promise.all([
-          sendDiscordNotification(DISCORD_WEBHOOK_URL,
-            WEBHOOK_PROXY_URL,
-            webhookProxySecret,
-             "早く干してくださいませ〜！"),
-          WASHER_MONITORRING.put("status", "0"),
-        ]);
+    // 状態変化時のみ通知・KV更新
+    const handleStatusChange = async (nextStatus: "0" | "1", message: string) => {
+      const [notificationResult, kvResult] = await Promise.allSettled([
+        sendDiscordNotification(
+          DISCORD_WEBHOOK_URL,
+          WEBHOOK_PROXY_URL,
+          webhookProxySecret,
+          message
+        ),
+        WASHER_MONITORRING.put("status", nextStatus),
+      ]);
+      if (notificationResult.status === 'rejected') {
+        console.error("通知送信失敗:", notificationResult.reason);
       }
+      if (kvResult.status === 'rejected') {
+        console.error("KV更新失敗:", kvResult.reason);
+      }
+    };
+
+    if (currentStatus === "0" && watt >= WASHER_START_THRESHOLD) {
+      await handleStatusChange("1", "ゴシゴシはじめますわ〜！");
+    } else if (currentStatus === "1" && watt < WASHER_START_THRESHOLD) {
+      await handleStatusChange("0", "早く干してくださいませ〜！");
+    }
   }
 };
 

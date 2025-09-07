@@ -4,7 +4,7 @@
 
 ## 構成
 
-- `CF_Wokers` フォルダ
+- `CF_Workers` フォルダ
   Cloudflare Workersのソース
   - `wrangler.jsonc`  
     Cloudflare Workers の設定ファイル。KV バインディングや環境変数などを記述します。
@@ -14,7 +14,7 @@
 ## デプロイ
 
 - Cloudflare Workers
-  `wrangler.jsonc` に正しい設定値を保存後、`CF_Wokers` フォルダ上で下記コマンドを実行してください。
+  `wrangler.jsonc` に正しい設定値を保存後、`CF_Workers` フォルダ上で下記コマンドを実行してください。
 
 ```shell
 npx wrangler deploy
@@ -28,7 +28,7 @@ npx wrangler deploy
 
 - SwitchBot API から洗濯機の状態を取得
 - 状態変化時に AWS lambda URLs の Webhook Proxy経由で Discord Webhook へ通知
-  - AWS lambda URLs 経由なのは Discode のレートリミット回避のため
+  - AWS lambda URLs 経由なのは Discord のレートリミット回避のため
 - 洗濯機の状態を KV に保存
 - cron トリガーによる定期監視
 

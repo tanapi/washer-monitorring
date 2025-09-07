@@ -15,9 +15,9 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
 	"vars": {
-		"WASHER_START_THRESHOLD": "1",
+		"WASHER_START_THRESHOLD": "5",
 		"SWITCH_BOT_DEVICE_ID": "your device id here",
-		"WEBHOOK_PROXY_URL": "your wbhook proxy url here",
+		"WEBHOOK_PROXY_URL": "your webhook proxy url here",
 		"DISCORD_WEBHOOK_URL": "your discord webhook url here"
 	},
 	
